@@ -75,3 +75,7 @@ node_modules/
 
 # ruff
 .ruff_cache/
+
+# Local verification artifacts
+coverage.xml
+*.db

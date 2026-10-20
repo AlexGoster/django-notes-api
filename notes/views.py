@@ -1,16 +1,29 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, status
+from typing import cast
+
+from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from django_filters.rest_framework import DjangoFilterBackend
+
 from notes.models import Note
 from notes.permissions import IsOwnerOrReadOnly
-from notes.serializers import NoteSerializer, UserLoginSerializer, UserRegistrationSerializer, UserSerializer
-from django.contrib.auth import get_user_model
+from notes.serializers import (
+    NoteSerializer,
+    RegistrationResponseSerializer,
+    TokenPairSerializer,
+    UserLoginSerializer,
+    UserRegistrationSerializer,
+    UserSerializer,
+)
 
 User = get_user_model()
 
@@ -23,7 +36,7 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 100
 
 
-class NoteViewSet(viewsets.ModelViewSet):
+class NoteViewSet(viewsets.ModelViewSet[Note]):
     """ViewSet для модели Note.
 
     Предоставляет операции CRUD для заметок с фильтрацией и пагинацией.
@@ -36,15 +49,17 @@ class NoteViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["is_archived", "created_at"]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Note]:
         """Фильтрует заметки по текущему пользователю.
 
         Returns:
             QuerySet заметок, принадлежащих текущему пользователю.
         """
-        return self.queryset.filter(author=self.request.user)
+        if getattr(self, "swagger_fake_view", False):
+            return self.queryset.none()
+        return self.queryset.filter(author_id=self.request.user.pk).select_related("author")
 
-    def perform_create(self, serializer) -> None:
+    def perform_create(self, serializer: BaseSerializer[Note]) -> None:
         """Назначает текущего пользователя автором при создании заметки.
 
         Args:
@@ -52,8 +67,8 @@ class NoteViewSet(viewsets.ModelViewSet):
         """
         serializer.save(author=self.request.user)
 
-    @action(detail=False, methods=["get"], url_path="archive")
-    def list_archived(self, request):
+    @action(detail=False, methods=["get"], url_path="archive", url_name="archive")
+    def list_archived(self, request: Request) -> Response:
         """Возвращает все заархивированные заметки текущего пользователя.
 
         Args:
@@ -76,7 +91,8 @@ class UserRegistrationView(APIView):
 
     permission_classes = []
 
-    def post(self, request):
+    @extend_schema(request=UserRegistrationSerializer, responses=RegistrationResponseSerializer)
+    def post(self, request: Request) -> Response:
         """Регистрирует нового пользователя.
 
         Args:
@@ -88,7 +104,7 @@ class UserRegistrationView(APIView):
         serializer = UserRegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        refresh = RefreshToken.for_user(user)
+        refresh = cast(RefreshToken, RefreshToken.for_user(user))
         return Response(
             {
                 "user": UserSerializer(user).data,
@@ -104,7 +120,8 @@ class UserLoginView(APIView):
 
     permission_classes = []
 
-    def post(self, request):
+    @extend_schema(request=UserLoginSerializer, responses=TokenPairSerializer)
+    def post(self, request: Request) -> Response:
         """Выполняет аутентификацию пользователя и возвращает JWT-токены.
 
         Args:
@@ -116,7 +133,7 @@ class UserLoginView(APIView):
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-        refresh = RefreshToken.for_user(user)
+        refresh = cast(RefreshToken, RefreshToken.for_user(user))
         return Response(
             {
                 "refresh": str(refresh),

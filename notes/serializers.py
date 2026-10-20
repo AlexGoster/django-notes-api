@@ -1,11 +1,15 @@
-from rest_framework import serializers
+from typing import Any
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User as AuthUser
+from rest_framework import serializers
+
 from notes.models import Note
 
 User = get_user_model()
 
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
+class UserRegistrationSerializer(serializers.ModelSerializer[AuthUser]):
     """Сериализатор для регистрации пользователя."""
 
     password = serializers.CharField(
@@ -21,7 +25,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ("id", "username", "email", "password")
         extra_kwargs = {"email": {"required": True}}
 
-    def create(self, validated_data: dict) -> User:
+    def create(self, validated_data: dict[str, Any]) -> AuthUser:
         """Создаёт нового пользователя на основе валидированных данных.
 
         Args:
@@ -33,13 +37,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
-class UserLoginSerializer(serializers.Serializer):
+class UserLoginSerializer(serializers.Serializer[dict[str, Any]]):
     """Сериализатор для авторизации пользователя."""
 
     username = serializers.CharField()
     password = serializers.CharField(style={"input_type": "password"})
 
-    def validate(self, data: dict) -> dict:
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """Валидирует учётные данные пользователя.
 
         Args:
@@ -60,7 +64,7 @@ class UserLoginSerializer(serializers.Serializer):
         return data
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer[AuthUser]):
     """Сериализатор для представления пользователя."""
 
     class Meta:
@@ -70,7 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ("id", "username", "email")
 
 
-class NoteSerializer(serializers.ModelSerializer):
+class NoteSerializer(serializers.ModelSerializer[Note]):
     """Сериализатор для модели Note."""
 
     author = UserSerializer(read_only=True)
@@ -82,7 +86,7 @@ class NoteSerializer(serializers.ModelSerializer):
         fields = ("id", "title", "content", "created_at", "updated_at", "is_archived", "author")
         read_only_fields = ("id", "created_at", "updated_at", "author")
 
-    def create(self, validated_data: dict) -> Note:
+    def create(self, validated_data: dict[str, Any]) -> Note:
         """Создаёт новую заметку на основе валидированных данных.
 
         Args:
@@ -93,3 +97,12 @@ class NoteSerializer(serializers.ModelSerializer):
         """
         validated_data["author"] = self.context["request"].user
         return Note.objects.create(**validated_data)
+
+
+class TokenPairSerializer(serializers.Serializer[dict[str, Any]]):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
+class RegistrationResponseSerializer(TokenPairSerializer):
+    user = UserSerializer()

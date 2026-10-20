@@ -1,4 +1,8 @@
 from rest_framework import permissions
+from rest_framework.request import Request
+from rest_framework.views import APIView
+
+from notes.models import Note
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -8,7 +12,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
     Другие пользователи могут только читать заметки.
     """
 
-    def has_object_permission(self, request, view, obj) -> bool:
+    def has_object_permission(self, request: Request, view: APIView, obj: Note) -> bool:
         """Проверяет, имеет ли пользователь разрешение на объект.
 
         Args:
@@ -21,4 +25,4 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         """
         if request.method in permissions.SAFE_METHODS:
             return True
-        return obj.author == request.user
+        return obj.author_id == request.user.pk
