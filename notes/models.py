@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 
 class Note(models.Model):
@@ -29,7 +29,7 @@ class Note(models.Model):
     class Meta:
         """Мета-опции модели Note."""
 
-        ordering = ["-created_at"]
+        ordering = ["-created_at", "-id"]
         verbose_name = "Заметка"
         verbose_name_plural = "Заметки"
 

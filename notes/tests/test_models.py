@@ -1,8 +1,8 @@
 """Тесты моделей Note."""
 
-from django.db import connection
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import TestCase
+
 from notes.models import Note
 
 User = get_user_model()
@@ -46,8 +46,8 @@ class NoteModelTest(TestCase):
             content="Another content",
             author=self.user,
         )
-        self.assertNotEqual(
-            list(Note.objects.order_by("-created_at").values_list("id", flat=True))[0],
+        self.assertEqual(
+            list(Note.objects.values_list("id", flat=True))[0],
             note2.id,
         )
 
