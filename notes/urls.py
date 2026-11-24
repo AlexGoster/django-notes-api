@@ -1,6 +1,7 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from notes.views import NoteViewSet, UserRegistrationView, UserLoginView
+
+from notes.views import NoteViewSet, UserLoginView, UserRegistrationView
 
 router = DefaultRouter()
 router.register(r"notes", NoteViewSet, basename="note")

@@ -1,8 +1,10 @@
 """Настройки проекта Django Notes API."""
 
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
-from decouple import config, Csv
+
+from decouple import Csv, config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -123,8 +125,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": 60,
-    "REFRESH_TOKEN_LIFETIME": 1,
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
@@ -137,12 +139,6 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    "POSTPROCESSING_HOOKS": [
-        "drf_spectacular.openapi.postprocessing._penultimate_schema_media",
-        "drf_spectacular.openapi.postprocessing._inject_copyright",
-        "drf_spectacular.openapi.postprocessing._obtain_security_fail_events",
-        "drf_spectacular.openapi.postprocessing._correlate_included_definitions",
-    ],
 }
 
 AUTH_USER_MODEL = "auth.User"

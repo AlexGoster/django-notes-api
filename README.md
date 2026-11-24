@@ -1,5 +1,7 @@
 # Django Notes API
 
+[Проверенный запуск и ограничения](VERIFICATION.md).
+
 [![CI](https://github.com/AlexGoster/django-notes-api/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AlexGoster/django-notes-api/actions/workflows/ci.yml)
 [![Coverage](https://codecov.io/gh/AlexGoster/django-notes-api/branch/main/graph/badge.svg)](https://codecov.io/gh/AlexGoster/django-notes-api)
 [![Python](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/)

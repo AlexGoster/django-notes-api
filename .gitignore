@@ -56,7 +56,6 @@ htmlcov/
 
 # Docker
 docker-compose.override.yml
-.dockerignore
 
 # Env
 .env
@@ -75,3 +74,7 @@ node_modules/
 
 # ruff
 .ruff_cache/
+
+# Local verification artifacts
+coverage.xml
+*.db

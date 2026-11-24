@@ -1,10 +1,11 @@
 """Тесты API-запросов для заметок."""
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
+
 from notes.models import Note
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -108,7 +109,7 @@ class TestNoteViews:
     def test_unauthorized_access(self, api_client):
         """Доступ без авторизации запрещён."""
         response = api_client.get(reverse("note-list"))
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_other_user_cannot_access(self, auth_client):
         """Пользователь не может получить доступ к заметкам других."""
@@ -134,8 +135,8 @@ class TestNoteViews:
         """Эндпоинт для архивных заметок."""
         Note.objects.create(title="Archived 1", content="Content", author=auth_client.user, is_archived=True)
         Note.objects.create(title="Archived 2", content="Content", author=auth_client.user, is_archived=True)
-        response = auth_client.get(reverse("note-list-archive"))
+        response = auth_client.get(reverse("note-archive"))
         assert response.status_code == status.HTTP_200_OK
-        results = response.json()
+        results = response.json()["results"]
         assert len(results) == 2
         assert all(n["is_archived"] for n in results)

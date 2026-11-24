@@ -1,1 +1,44 @@
-[tool.ruff]target-version = "py312"line-length = 120exclude = [".git", "__pycache__", "node_modules", "migrations"][tool.ruff.lint]select = ["E", "F", "I", "W", "N", "UP", "B", "C4", "T"]ignore = ["E501", "N802", "N803"][tool.ruff.lint.per-file-ignores]"tests/**/*.py" = ["B011", "B018"]"**/migrations/*.py" = ["ALL"][tool.mypy]python_version = "3.12"strict = trueexclude = ["migrations", "tests"]warn_unused_ignores = truewarn_redundant_casts = truewarn_unreachable = truedisallow_untyped_defs = truedisallow_incomplete_defs = truecheck_untyped_defs = truedisallow_untyped_calls = truedisallow_subclassing = truedisallow_any_generics = true[[tool.mypy.overrides]]module = ["tests.*"]warn_unused_ignores = true[tool.pytest.ini_options]DJANGO_SETTINGS_MODULE = "config.settings"pythonpath = ["."]testpaths = ["notes/tests"]addopts = "--cov=notes --cov-report=term-missing --cov-report=html --strict-markers"
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+exclude = [".git", "__pycache__", "node_modules", "migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "N", "UP", "B", "C4", "T"]
+ignore = ["E501", "N802", "N803"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["B011", "B018"]
+"**/migrations/*.py" = ["ALL"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+exclude = ["migrations", "tests"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_subclassing_any = true
+disallow_any_generics = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["decouple", "django_filters.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+pythonpath = ["."]
+testpaths = ["notes/tests"]
+addopts = "--cov=notes --cov-report=term-missing --cov-report=html --strict-markers"
